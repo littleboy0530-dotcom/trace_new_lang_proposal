@@ -1,0 +1,142 @@
+TRACE LANGUAGE DESIGN PROPOSAL v0.1
+
+-소개
+
+Trace is a debugging-first systems programming language. Its core
+philosophy is:
+트레이스는 디버깅을 최우선으로 생각한 프로그래밍 언어입니다.
+이 언어의 핵심 철학은 다음과 같습니다.
+
+“Writing correct code is difficult. Understanding why code failed should
+be easy.”
+"처음부터 의도대로 동작하는 코드를 짜는건 어렵지만, 왜 버그가 났는지 이해하는건 쉽다"
+
+Core Principles
+핵심 원리
+
+1.  Readability First 가독성 우선
+2.  Intent Declaration 의도를 명확하게
+3.  Continuous Verification
+4.  Fail Fast 빠르게 실패하라
+5.  Evidence-Based Debugging 증거 기반의 같은 
+6.  Actor Controlled Mutation Actor 만이 가변성을 갖는다
+7.  Architectural Pressure 설계 구조 강제
+8.  Developer Responsible Performance 개발자가 성능을 이끌어낸다
+
+Type System
+타입 시스템
+
+Primitive Types: - int - float - bool - char - string
+윈시 타입: int(64비트 정수) float(64비트 부동 소수점) bool(불리언) char(UTF-8 문자) string(UTF-8 문자열)
+
+Data: - Similar to Rust structs. - Data may contain other Data. -
+Data: -러스트의 구조체와 비슷합니다. -'데이터'는 다른 '데이터'를 포함할 수 있습니다.
+
+Cyclic/self-referential structures are forbidden.
+순환/자기 참조 '데이터'는 금지됩니다.
+
+Enum: - Similar to Rust enums. - Variants may contain data.
+Enum: - Rust의 열거형과 비슷합니다 -'열거형'은 데이터를 포함할 수 있습니다
+
+Groups
+'그룹'
+
+Groups are semantic subtypes with constraints.
+'그룹'은 제약을 가진 의미론적 서브타입입니다. 
+
+Example:
+예시:
+
+Group percent is int and self >= 0 and self <= 100
+
+Binding: let hp = 50; hp is percent;
+
+Permanent Binding: let hp is percent = 50;
+
+Values are continuously verified. Violations cause immediate program
+termination.
+'그룹'에 들어오는 값은 항상 검증됩니다. 만약 그룹 조건에 위배된다면 즉시 프로그램이 종료됩니다.
+
+Specs
+'스펙'
+
+Specs are behavior interfaces similar to Rust traits.
+'스팩'은 러스트와 비슷한 동작들의 묶음입니다
+
+They may be implemented by: - Data - Enum - Group
+'데이터', '열거형', '그룹'에 구현될수 있습니다.
+
+Resolution order: Group -> Parent Group -> Base Type
+동작 순서는 '그룹' -> 상위 '그룹' -> 기반 타입 입니다
+
+Actors
+'액터'
+
+All mutation must occur through Actors.
+모든 변수의 직접적인 변경은 '액터'를 통해서만 일어납니다.
+
+Reads are always allowed.
+읽기는 어디서는 가능합니다.
+
+Each Actor owns a mailbox. Mailbox execution order is FIFO.
+모든 '액터'는 우편함을 갖습니다. 우편함의 요청 실행은 선입선출입니다.
+
+Actor-to-Actor calls are forbidden.
+'액터' 내부에서 '액터'호출은 금지됩니다.
+
+Actor failures do not roll back state. Trace follows a fail-fast
+philosophy.
+'액터'의 실행 실패는 '빠른 실패'라는 철학에 따라 복구되지 않습니다.
+
+CSI (Code State Investigation)
+'코드 상태 추적'
+
+Debug-only diagnostics system.
+디버그 전용 진단 시스템입니다.
+
+Stores: - Variable history - Actor call history
+저장 목록: 변수의 변경 기록 - '액터'의 호출 기록
+
+Example command:
+'예시 커맨드'
+
+trace print_log hp
+
+Concurrency
+'동시성'
+
+-   Reads are unrestricted.
+- 읽기는 제한이 없음
+-   Writes require Actors.
+-쓰기는 액터를 통해서만
+-   Deadlocks are prevented by design.
+-데드락은 원천적으로 예방됨
+
+Functional Features
+'함수형 요소'
+
+Trace supports: - Closures - Higher-order functions - Iterators -
+map/filter/fold/find/any/all
+트레이스가 지원하는 것들: 클로저, 고차함수, 이터레이터
+map, filter, fold, find, any, all
+
+Performance Philosophy
+성능에 대한 철학
+
+Trace prioritizes readability and debuggability.
+트레이스는 가독성과 디버그 용이성을 우선시합니다.
+
+Expensive Group checks are allowed. Performance responsibility belongs
+to the developer.
+고비용의 그룹 체크는 허용됩니다. 성능을 끌어올리는 것은 개발자의 역할입니다.
+
+Summary
+요약
+
+Trace combines: - Systems programming - Semantic Groups - Actor-based
+mutation - Continuous verification - CSI debugging
+트레이스의 차별점: 시스템 프로그래밍 - 의미론적 그룹 - 액터 기반의 가변성 - 지속적인 검증 - 코드 상태 기반 디버깅
+
+Trace is designed to help developers understand failures quickly rather
+than attempting to guarantee perfect code on the first try.
+트레이스는 개발자가 첫번째 시도만에 완벽한 코드를 짜는 것보다 빠르게 실패의 원인을 알아내는 것을 도와줄 것입니다.
